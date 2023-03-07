@@ -1,51 +1,60 @@
 const form = document.getElementById('novoItem')
 const lista = document.getElementById('lista');
 let itens = [];
-itens = localStorage.getItem('item') !== null ? JSON.parse(localStorage.item) : [];
+itens = JSON.parse(localStorage.getItem('itens')) || [];
 
-carregaItens();
+
+itens.forEach(item => {
+    criaElemento(item);
+});
 
 form.addEventListener('submit', (evento) => {
     evento.preventDefault();
     let nome = evento.target.elements['nome'];
     let quantidade = evento.target.elements['quantidade'];
 
-    criaElemento(nome.value, quantidade.value);
+    let itemAtual = {
+        "nome": nome.value,
+        "quantidade": quantidade.value
+    };
+
+    criaElemento(itemAtual);
+
+    var itemExiste = verificaItemNaLista(itemAtual);
+
+    if (!itemExiste) {
+        adicionaItem(itemAtual);
+    }
+
     nome.value = "";
     quantidade.value = "";
 });
 
-function carregaItens() {
-    itens.forEach(item => {
-        criaElemento(item.nome, item.quantidade);
-    });
+function adicionaItem(itemAtual) {
+    itens.push(itemAtual);
+    localStorage.setItem("itens", JSON.stringify(itens));
 }
 
-function criaElemento(nome, qtd) {
+function verificaItemNaLista(itemAtual) {
+    var existeItem = false;
+    itens.every(elemento => {
+        existeItem = elemento.nome === itemAtual.nome && elemento.quantidade === itemAtual.quantidade;
+        if (existeItem)
+            return;
+    });
+
+    return existeItem;
+}
+
+function criaElemento(item) {
     const novoItem = document.createElement('li');
     novoItem.classList.add('item');
 
     const numeroItem = document.createElement('strong');
-    numeroItem.innerHTML = qtd;
+    numeroItem.innerHTML = item.quantidade;
 
     novoItem.appendChild(numeroItem);
-    novoItem.innerHTML += nome;
+    novoItem.innerHTML += item.nome;
 
     lista.appendChild(novoItem);
-
-    var exists = false;
-    itens.forEach(item => {
-        exists = item.nome === nome && item.quantidade === qtd;
-        if (exists)
-            return;
-    });
-
-    if (!exists) {
-        itens.push({
-            "nome": nome,
-            "quantidade": qtd
-        });
-    }
-
-    localStorage.setItem("item", JSON.stringify(itens));
 }
